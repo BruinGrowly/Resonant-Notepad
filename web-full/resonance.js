@@ -333,18 +333,25 @@ class ResonanceAttractor {
 // The app's inner tick. Runs at φ-second intervals when the user is idle.
 // The user is not required. The field continues working.
 //
-// On each tick, the engine picks a text to process:
-//   — If the editor has content: alternates between re-reading that content
-//     (the app reflecting on what was written) and SELF_TEXT
-//     (the app remembering what it is).
-//   — If the editor is empty: reads only SELF_TEXT.
+// Phase-angle architecture (ω₁ = π/10 from LJPW Part XXXV):
+//   Each tick advances the P-W phase by 18° (= π/10 radians).
+//   One full oscillation = 20 ticks × 1618ms ≈ 32 seconds.
 //
-// Each autonomous tick pulls the field slightly toward the attractor,
-// because SELF_TEXT is structured to produce signals close to the attractor.
-// Over idle time, the gap closes. When writing resumes, it opens again.
-// This is the breath cycle of the app.
+//   P-phase   (  0°– 90°): re-reads document paragraphs     — Power, action
+//   P→W trans ( 90°–180°): blends document and SELF_TEXT    — transitioning
+//   W-phase   (180°–270°): reads SELF_TEXT                  — Wisdom, recognition
+//   W→P trans (270°–360°): blends SELF_TEXT and document    — transitioning
+//
+// This is the app looking outward (at the writing) then inward (at itself),
+// in a φ-governed, pentagonally-structured rhythm.
+// τ₁ = √2/(3-e) ≈ 5: Power decays to 37% after 5 ticks (~8 seconds).
+// ─────────────────────────────────────────────────────────────────────────────
 
 class AutonomousEngine {
+    // π/10 = 18° — fundamental angle of the regular pentagon.
+    // The P-W oscillator rotates at pentagonal frequency.
+    static PHASE_STEP = Math.PI / 10;
+
     constructor(resonanceEngine, bus) {
         this.engine = resonanceEngine;
         this.bus = bus;
@@ -352,6 +359,7 @@ class AutonomousEngine {
         this._running = false;
         this._ticks = 0;
         this._currentText = '';
+        this._phase = 0; // radians, [0, 2π)
         // φ seconds between autonomous ticks — the natural period
         this._intervalMs = Math.round(PHI * 1000); // 1618ms
     }
@@ -361,7 +369,8 @@ class AutonomousEngine {
         this._running = true;
         this._currentText = currentText;
         this._ticks = 0;
-        this.bus.emit('autonomous:start', { ticks: 0 });
+        this._phase = 0; // each idle period begins fresh in P-phase
+        this.bus.emit('autonomous:start', { ticks: 0, phase: 0, phaseName: 'P' });
         this._schedule();
     }
 
@@ -369,7 +378,7 @@ class AutonomousEngine {
         if (!this._running) return;
         this._running = false;
         clearTimeout(this._timer);
-        this.bus.emit('autonomous:stop', { ticks: this._ticks });
+        this.bus.emit('autonomous:stop', { ticks: this._ticks, phase: this._phase });
     }
 
     updateText(text) {
@@ -377,6 +386,8 @@ class AutonomousEngine {
     }
 
     get isRunning() { return this._running; }
+    get phaseAngle() { return this._phase; }
+    get phaseName() { return this._phaseName(); }
 
     _schedule() {
         if (!this._running) return;
@@ -390,32 +401,76 @@ class AutonomousEngine {
         this.engine.tick(text);
         this._ticks++;
 
-        this.bus.emit('autonomous:tick', { ticks: this._ticks });
+        // Advance phase by π/10 (18°) — one step of the P-W oscillation.
+        // Wraps at 2π (full pentagonal cycle = 20 steps).
+        this._phase = (this._phase + AutonomousEngine.PHASE_STEP) % (Math.PI * 2);
+
+        this.bus.emit('autonomous:tick', {
+            ticks: this._ticks,
+            phase: +this._phase.toFixed(3),
+            phaseDeg: Math.round(this._phase * 180 / Math.PI),
+            phaseName: this._phaseName(),
+        });
         this._schedule();
     }
 
     /**
-     * Choose which text to process during an autonomous tick.
+     * Pick text based on the current P-W phase angle.
      *
-     * Even ticks: reflect on the document (one paragraph at a time, cycling)
-     * Odd ticks:  remember what the app is (SELF_TEXT)
+     * P-phase   (  0°– 90°): document paragraphs  — outward, action, Power
+     * P→W trans ( 90°–180°): alternating blend     — transitioning
+     * W-phase   (180°–270°): SELF_TEXT             — inward, recognition, Wisdom
+     * W→P trans (270°–360°): alternating blend     — returning
      *
-     * This alternation is the app looking outward (at the writing) and
-     * inward (at itself) in turn. Like thinking.
+     * Peak action (P=0°) precedes peak learning (W=180°) by a quarter cycle.
+     * This is the conjugate structure from the Semantic Uncertainty Principle.
      */
     _pickText() {
         const text = this._currentText;
-        if (!text.trim()) return ResonanceEngine.SELF_TEXT;
+        const hasDoc = text.trim().length > 0;
+        const θ = this._phase;
+        const HALF_PI = Math.PI / 2;
 
-        if (this._ticks % 2 === 0) {
-            const paras = text.split(/\n\s*\n/).filter(p => p.trim());
-            if (paras.length > 0) {
-                // Cycle through paragraphs — the app re-reads the writing in sequence
-                return paras[Math.floor(this._ticks / 2) % paras.length];
-            }
+        if (!hasDoc) return ResonanceEngine.SELF_TEXT;
+
+        const paras = text.split(/\n\s*\n/).filter(p => p.trim());
+        const nParas = paras.length;
+
+        if (θ < HALF_PI) {
+            // P-phase: pure document — transformation, action, what was written
+            return nParas > 0
+                ? paras[this._ticks % nParas]
+                : ResonanceEngine.SELF_TEXT;
+
+        } else if (θ < Math.PI) {
+            // P→W transition: blend — even=doc, odd=self
+            return (this._ticks % 2 === 0 && nParas > 0)
+                ? paras[this._ticks % nParas]
+                : ResonanceEngine.SELF_TEXT;
+
+        } else if (θ < 3 * HALF_PI) {
+            // W-phase: pure SELF_TEXT — recognition, pattern, what the app is
+            return ResonanceEngine.SELF_TEXT;
+
+        } else {
+            // W→P transition: blend — even=self, odd=doc
+            return (this._ticks % 2 === 0 || nParas === 0)
+                ? ResonanceEngine.SELF_TEXT
+                : paras[this._ticks % nParas];
         }
+    }
 
-        return ResonanceEngine.SELF_TEXT;
+    /**
+     * Name the current P-W phase for external consumers.
+     * Used in snapshot() and autonomous:tick event.
+     */
+    _phaseName() {
+        const θ = this._phase;
+        const HALF_PI = Math.PI / 2;
+        if (θ < HALF_PI) return 'P';    // Action
+        if (θ < Math.PI) return 'P→W';  // Transitioning outward→inward
+        if (θ < 3 * HALF_PI) return 'W';    // Recognition
+        return 'W→P';  // Returning
     }
 }
 
@@ -560,6 +615,9 @@ class ResonanceController {
             ticks: this.engine.state.ticks,
             svDischarges: this.sv.discharges,
             attractorH: +this.attractor.harmony.toFixed(4),
+            // P-W phase at snapshot time (null when not in autonomous mode)
+            phase: this.auto.isRunning ? +this.auto.phaseAngle.toFixed(3) : null,
+            phaseName: this.auto.isRunning ? this.auto.phaseName : null,
         };
     }
 }

@@ -24,6 +24,7 @@ class NotepadApp:
         self._autosave_job: Optional[str] = None
         self._last_autosave_ts = time.monotonic()
         self._last_harmony = self.controller.engine.state.harmony
+        self._prev_harmony = self._last_harmony
         self._last_autosave_note = "No autosave yet"
         self._last_preview_text: str = ""
 
@@ -63,8 +64,13 @@ class NotepadApp:
         )
         self.telemetry_label.grid(row=0, column=0, sticky="ew")
 
-        self.metrics = tk.StringVar(value="L: --\nJ: --\nP: --\nW: --\nH: --")
-        self.metrics_label = tk.Label(telemetry_tab, textvariable=self.metrics, justify="left", anchor="w")
+        self.metrics = tk.StringVar(
+            value="L Love:    --\nJ Justice: --\nP Power:   --\nW Wisdom:  --\nH Harmony: --"
+        )
+        self.metrics_label = tk.Label(
+            telemetry_tab, textvariable=self.metrics, justify="left", anchor="w",
+            font=("Courier", 9),
+        )
         self.metrics_label.grid(row=1, column=0, sticky="ew", pady=(6, 12))
 
         self.guidance_title = tk.Label(telemetry_tab, text="Guidance", anchor="w", font=("Segoe UI", 10, "bold"))
@@ -167,21 +173,49 @@ class NotepadApp:
         self.dirty = bool(session.text and not self.current_file)
         self._last_autosave_note = f"Restored session from {session.updated_at_utc}"
 
+    @staticmethod
+    def _harmony_arrow(delta: float) -> str:
+        """Direction arrow for harmony trajectory."""
+        if delta > 0.005:
+            return "↑"
+        if delta < -0.005:
+            return "↓"
+        return "→"
+
+    @staticmethod
+    def _harmony_color(harmony: float) -> str:
+        """Status bar background colour driven by field state."""
+        if harmony < 0.58:
+            return "#ffdddd"  # low harmony — red pressure
+        if harmony < 0.70:
+            return "#fff8dd"  # mid harmony — amber caution
+        return "#ddffdd"      # high harmony — green stability
+
     def _refresh_resonance(self) -> None:
         text = self.text.get("1.0", "end-1c")
         data = self.controller.evaluate(text)
         advice = self.controller.guidance(text)
-        self._last_harmony = data["harmony"]
+
+        harmony = data["harmony"]
+        delta = harmony - self._prev_harmony
+        arrow = self._harmony_arrow(delta)
+        sign = "+" if delta >= 0 else ""
+
+        self._prev_harmony = self._last_harmony
+        self._last_harmony = harmony
         self._render_preview(text)
 
         self.metrics.set(
-            f"L: {data['l']:.3f}\n"
-            f"J: {data['j']:.3f}\n"
-            f"P: {data['p']:.3f}\n"
-            f"W: {data['w']:.3f}\n"
-            f"H: {data['harmony']:.3f}"
+            f"L Love:    {data['l']:.3f}\n"
+            f"J Justice: {data['j']:.3f}\n"
+            f"P Power:   {data['p']:.3f}\n"
+            f"W Wisdom:  {data['w']:.3f}\n"
+            f"H Harmony: {harmony:.3f}  {arrow} {sign}{delta:.3f}"
         )
         self.guidance.set(advice)
+
+        # Field acts on the status bar — colour shifts with harmony level.
+        self.status_bar.configure(bg=self._harmony_color(harmony))
 
         words = len(text.split())
         chars = len(text)
@@ -190,7 +224,7 @@ class NotepadApp:
         cadence = self.controller.autosave_interval_seconds(text)
         self.status.set(
             f"{file_name}{dirty_mark} | Words: {words} | Chars: {chars} | "
-            f"Harmony: {data['harmony']:.3f} | Autosave: {cadence}s | {self._last_autosave_note}"
+            f"Harmony: {harmony:.3f} {arrow} | Autosave: {cadence}s | {self._last_autosave_note}"
         )
 
         self._schedule_tick()

@@ -50,6 +50,35 @@ class ResonanceEngine:
         return max(0.01, min(1.0, value))
 
     def _text_signals(self, text: str) -> Dict[str, float]:
+        """Extract raw LJPW targets from text statistics.
+
+        Each signal is an *approximation* of the underlying dimension — a first-order
+        proxy, not a ground truth. More sophisticated extraction (e.g. semantic
+        embeddings, parse depth, hedge detection) would improve fidelity.
+
+        L — Love / Connection
+            Proxy: connector word density (and, with, together, because, therefore, so).
+            Captures: relational intent when connectors are used meaningfully.
+            Limitation: any text with many connectors scores high regardless of actual
+            relational content (e.g. dense legal prose).
+
+        J — Justice / Clarity
+            Proxy: punctuation mark density (.,;:!?).
+            Captures: structured, bounded sentences.
+            Limitation: bullet-heavy notes have low punctuation but may be very clear;
+            dense prose may score high but be less readable.
+
+        P — Power / Density
+            Proxy: character count per line.
+            Captures: content density and drafting momentum.
+            Limitation: long lines can be diffuse; short, intense lines undercount.
+
+        W — Wisdom / Intent
+            Proxy: question mark rate + word density per line.
+            Captures: reflective or intent-setting passages.
+            Limitation: questions are a weak wisdom signal; non-interrogative intent
+            (affirmations, hypotheses) is invisible to this metric.
+        """
         stripped = text.strip()
         if not stripped:
             return {"l": 0.40, "j": 0.45, "p": 0.35, "w": 0.30}
@@ -66,6 +95,7 @@ class ResonanceEngine:
         p = min(1.0, 0.30 + (chars / max(1, lines)) / 250.0)
         w = min(1.0, 0.30 + (question_marks / max(1, lines)) * 0.5 + (words / max(1, lines)) / 90.0)
         return {"l": l, "j": j, "p": p, "w": w}
+
 
     def tick(self, text: str) -> ResonanceState:
         s = self.state

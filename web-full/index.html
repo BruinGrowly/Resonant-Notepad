@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-build="full">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notepad</title>
+    <meta name="description" content="A minimalist markdown notepad. Resonance inside." />
+
+    <!-- Google Fonts: Inter (UI), Lora (preview serif), JetBrains Mono (editor) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-state="void">
+
+    <div id="app">
+
+        <!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+        <header id="toolbar" role="banner">
+            <div class="toolbar-left">
+                <span class="app-mark">Notepad</span>
+            </div>
+
+            <div class="toolbar-center">
+                <span id="filename-display" class="filename">Untitled</span>
+            </div>
+
+            <div class="toolbar-right">
+                <button id="btn-new" class="toolbar-btn" title="New (Ctrl+N)">New</button>
+                <button id="btn-open" class="toolbar-btn" title="Open (Ctrl+O)">Open</button>
+
+                <div class="save-group">
+                    <button id="btn-save" class="toolbar-btn btn-save-main" title="Save (Ctrl+S)">Save</button>
+                    <button id="btn-save-chevron" class="toolbar-btn btn-save-chevron" title="Save as…"
+                        aria-label="Save options">▾</button>
+                    <div id="save-menu" class="save-dropdown hidden" role="menu">
+                        <button id="save-md" class="dropdown-item" role="menuitem">Save as Markdown (.md)</button>
+                        <button id="save-txt" class="dropdown-item" role="menuitem">Save as Plain Text (.txt)</button>
+                    </div>
+                </div>
+
+                <span class="toolbar-sep">·</span>
+                <span id="word-count" class="word-count" aria-live="polite">0 words</span>
+            </div>
+        </header>
+
+        <!-- ── Workspace ───────────────────────────────────────────────────────── -->
+        <main id="workspace" role="main">
+
+            <div id="editor-pane">
+                <textarea id="editor" aria-label="Document editor" placeholder="Begin writing…" spellcheck="true"
+                    autocomplete="off" autocorrect="off" autocapitalize="sentences"></textarea>
+            </div>
+
+            <div id="divider" role="separator" aria-orientation="vertical" title="Drag to resize"></div>
+
+            <div id="preview-pane" aria-label="Markdown preview">
+                <div id="preview-header">Preview</div>
+                <div id="preview-scroll">
+                    <p class="preview-empty">Begin writing to see the preview…</p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ── Status bar ──────────────────────────────────────────────────────── -->
+        <footer id="statusbar" role="contentinfo">
+            <span id="status-msg" aria-live="polite"></span>
+            <span id="status-counts">0 words · 0 chars</span>
+        </footer>
+
+    </div>
+
+    <!-- marked.js — bundled locally -->
+    <script src="marked.min.js"></script>
+
+    <!-- Full resonance engine -->
+    <script src="resonance.js"></script>
+
+    <!-- Application -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>

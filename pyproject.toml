@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "resonant-notepad"
+version = "0.1.0"
+description = "A resonance-first Python notepad app built with Tkinter."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+resonant-notepad = "resonance_notepad.app:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -25,6 +25,7 @@ class NotepadApp:
         self._last_autosave_ts = time.monotonic()
         self._last_harmony = self.controller.engine.state.harmony
         self._last_autosave_note = "No autosave yet"
+        self._last_preview_text: str = ""
 
         self._build_ui()
         self._build_menu()
@@ -118,6 +119,9 @@ class NotepadApp:
         self._autosave_job = self.root.after(2000, self._autosave_if_due)
 
     def _render_preview(self, text: str) -> None:
+        if text == self._last_preview_text:
+            return
+        self._last_preview_text = text
         preview_text = render_markdown_preview(text)
         self.preview.configure(state="normal")
         self.preview.delete("1.0", "end")

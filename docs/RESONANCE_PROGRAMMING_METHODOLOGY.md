@@ -77,13 +77,6 @@ A profile is deploy-candidate only if:
 
 If any gate fails, the profile remains experimental.
 
-## Tooling
-
-- Suite: `benchmarks/resonance_methodology_suite.py`
-- JSON output: `docs/RESONANCE_METHODOLOGY_RESULTS.json`
-- Report output: `docs/RESONANCE_METHODOLOGY_REPORT.md`
-- Tests: `tests/test_resonance_methodology.py`
-
 ## What This Lets Us Do
 
 - Compare resonance profiles with one command.

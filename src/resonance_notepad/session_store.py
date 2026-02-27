@@ -17,8 +17,11 @@ class SessionData:
 class SessionStore:
     """Persistent local session state for crash-safe restore."""
 
+    # Two levels up from this file: src/resonance_notepad/ -> src/ -> repo root
+    _DEFAULT_BASE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     def __init__(self, base_dir: Optional[str] = None) -> None:
-        root = base_dir or os.getcwd()
+        root = base_dir or self._DEFAULT_BASE
         self._session_dir = os.path.join(root, ".resonant_notepad")
         self._session_path = os.path.join(self._session_dir, "session.json")
 

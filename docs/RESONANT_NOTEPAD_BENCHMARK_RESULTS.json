@@ -1,0 +1,51 @@
+{
+  "generated_at_utc": "2026-02-27T04:44:44.462623+00:00",
+  "summary": {
+    "session_count": 3,
+    "average_harmony": 0.566528,
+    "average_volatility": 0.006672,
+    "average_low_harmony_rate": 1.0,
+    "resonance_viability_score": 0.538582
+  },
+  "sessions": [
+    {
+      "name": "draft_flow",
+      "steps": 4,
+      "avg_harmony": 0.5645896435752541,
+      "min_harmony": 0.5555547378469472,
+      "max_harmony": 0.5731904474091815,
+      "volatility": 0.006673540005071728,
+      "low_harmony_rate": 1.0,
+      "final_l": 0.6616404376210583,
+      "final_j": 0.44818574575838466,
+      "final_p": 0.7476652912483879,
+      "final_w": 0.7320424923567235
+    },
+    {
+      "name": "dense_notes",
+      "steps": 4,
+      "avg_harmony": 0.5668149995629137,
+      "min_harmony": 0.55740968813503,
+      "max_harmony": 0.5760069634807862,
+      "volatility": 0.006888493435353915,
+      "low_harmony_rate": 1.0,
+      "final_l": 0.6706077208746495,
+      "final_j": 0.4424362396775291,
+      "final_p": 0.7608438777413448,
+      "final_w": 0.7445466817750689
+    },
+    {
+      "name": "chaotic_input",
+      "steps": 4,
+      "avg_harmony": 0.5681784916272505,
+      "min_harmony": 0.559752097456392,
+      "max_harmony": 0.5770313705302089,
+      "volatility": 0.006453144646423356,
+      "low_harmony_rate": 1.0,
+      "final_l": 0.6733722786853844,
+      "final_j": 0.44822037810353604,
+      "final_p": 0.7588982336767723,
+      "final_w": 0.7391853259971706
+    }
+  ]
+}

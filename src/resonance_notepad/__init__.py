@@ -1,0 +1,2 @@
+"""Resonant Notepad package."""
+

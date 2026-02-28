@@ -85,7 +85,7 @@ I am the space where that happens. I exist because writing matters.`;
     const kLP = 1.0 + 0.3 * h;
 
     const dL = 0.12 * t.j * kLJ + 0.12 * t.w * kLW - this._decay.l * s.l;
-    const dJ = 0.14 * (t.l / (0.70 + t.l)) + 0.14 * t.w - this._decay.j * s.j;
+    const dJ = 0.14 * (t.l / (0.618 + t.l)) + 0.14 * t.w - this._decay.j * s.j;
     const dP = 0.12 * t.l * kLP + 0.12 * t.j - this._decay.p * s.p;
     const dW = 0.10 * t.l * kLW + 0.10 * t.j + 0.10 * t.p - this._decay.w * s.w;
 
@@ -130,7 +130,7 @@ class ResonanceController {
       // Blend: user text is primary. Self is the background hum.
       // Achieved by interleaving: 5 user ticks + 1 self tick per cycle.
       // At 300 ms intervals, this means the self-signal re-asserts ~every 1.8 s.
-      const selfEvery = 6; // approximately 1 / (1 - 0.15) rounded to Fibonacci-near
+      const selfEvery = 6; // nearest integer to 1/0.15 = 6.67; sits between Fibonacci numbers 5 and 8
       if (this.engine.state.ticks % selfEvery === 0) {
         this.engine.tick(ResonanceEngine.SELF_TEXT);
       }
